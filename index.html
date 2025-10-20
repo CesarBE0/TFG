@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- Logotipo redondo-->
+    <link rel="icon" type="image/png" href="logos/1.png">
+
+  </head>
+  <body>
+    <!-- Contenido de la página 2 -->
+    <h1>Bienvenido a la página principal</h1>
+    <p>Este es el contenido de la página principal.</p>
+    <!-- boton cambio a pagina principal -->
+    <button
+      onclick="sessionStorage.setItem('previousPage', 'index'); location.href='loader.html'">
+      Ir a la página principal
+    </button>
+  </body>
+</html>
