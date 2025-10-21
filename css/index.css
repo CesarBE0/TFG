@@ -42,3 +42,8 @@ body {
   color: var(--muted);
   font-size: .9rem
 }
+
+.navbar-nav .nav-link.active-page {
+  font-weight: bold;
+  color: #0f172a !important; /* negro oscuro, sobrescribe Bootstrap */
+}
