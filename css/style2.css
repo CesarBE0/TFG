@@ -143,12 +143,18 @@ body {
 
 /* Campos de páginas ajustados a su contenido */
 .pages-input {
-  min-width: 100px; /* suficiente para ver el placeholder */
-  max-width: 130px; /* evita que se haga demasiado ancho */
+  min-width: 100px;
+  /* suficiente para ver el placeholder */
+  max-width: 130px;
+  /* evita que se haga demasiado ancho */
 }
 
 .navbar-nav .nav-link.active-page {
   font-weight: bold;
-  color: #0f172a !important; /* negro oscuro, sobrescribe Bootstrap */
+  color: #0f172a !important;
+  /* negro oscuro, sobrescribe Bootstrap */
 }
 
+.navbar-light .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0,0,0,0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
