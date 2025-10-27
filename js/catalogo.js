@@ -1,4 +1,4 @@
-// === Lista de libros ===
+// Lista libros
 const sampleBooks = [
   { id: 1, title: "Don Quijote de la Mancha", author: "Miguel de Cervantes", type: "Novela", pages: 863, image: "img/libro1.png", summary: "Clásico de la literatura española sobre un caballero andante." },
   { id: 2, title: "Cien años de soledad", author: "Gabriel García Márquez", type: "Novela", pages: 417, image: "img/libro1.png", summary: "Historia épica de la familia Buendía en Macondo." },
