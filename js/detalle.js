@@ -67,6 +67,15 @@ function renderBookDetail() {
     return;
   }
 
+  // Revisamos si el libro está en ofertas
+  const ofertas = JSON.parse(localStorage.getItem("ofertasLibros")) || [];
+  const ofertaLibro = ofertas.find(o => o.id === book.id);
+  let precioFinal = book.price;
+
+  if (ofertaLibro) {
+    precioFinal = (book.price * (1 - ofertaLibro.descuento / 100)).toFixed(2);
+  }
+
   container.innerHTML = `
     <div class="book-detail">
       <div class="book-image">
@@ -76,12 +85,14 @@ function renderBookDetail() {
         <h1>${book.title}</h1>
         <p class="book-meta">${book.author} · ISBN: ${book.id} · Nº páginas: ${book.pages}</p>
         <span class="book-type">${book.type}</span>
-        <div class="book-price">${book.price.toFixed(2)} €</div>
+        <div class="book-price">
+          ${ofertaLibro ? `<span class="text-muted text-decoration-line-through">${book.price.toFixed(2)} €</span> 🡪 <span class="text-success">${precioFinal} €</span>` : `${book.price.toFixed(2)} €`}
+        </div>
         <button class="btn btn-add">Añadir a la cesta</button>
         <div class="format-options">
-          <button class="btn btn-outline-secondary">Tapa dura ${book.price.toFixed(2)} €</button>
-          <button class="btn btn-outline-secondary">eBook ${(book.price/2).toFixed(2)} €</button>
-          <button class="btn btn-outline-secondary">Audiolibro ${(book.price*0.9).toFixed(2)} €</button>
+          <button class="btn btn-outline-secondary">Tapa dura ${precioFinal} €</button>
+          <button class="btn btn-outline-secondary">eBook ${(precioFinal-(precioFinal/4)).toFixed(2)} €</button>
+          <button class="btn btn-outline-secondary">Audiolibro ${(precioFinal*0.9).toFixed(2)} €</button>
         </div>
         <p class="book-summary">${book.summary}</p>
       </div>

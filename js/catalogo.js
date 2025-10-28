@@ -122,36 +122,49 @@ function mostrarDescuentos() {
   const ofertasContainer = document.getElementById("ofertas");
   if (!ofertasContainer) return;
 
+  // Selecciona 4 libros al azar
   const librosAleatorios = sampleBooks
     .sort(() => Math.random() - 0.5)
     .slice(0, 4);
 
-  const html = librosAleatorios.map(book => {
-    const descuento = Math.floor(Math.random() * 30) + 10; // 10–40%
-    const precioFinal = (book.price * (1 - descuento / 100)).toFixed(2);
+  // Creamos un array para guardar descuentos
+  const descuentos = [];
 
-    return `
-      <div class="col-md-3 mb-4">
-        <a href="detalle.html?id=${book.id}" class="text-decoration-none text-dark">
-          <div class="card book-card shadow-sm h-100 position-relative overflow-hidden">
-            <span class="badge bg-danger position-absolute top-0 end-0 m-2 p-2 shadow">-${descuento}%</span>
-            <img src="${book.image}" class="card-img-top" alt="${book.title}">
-            <div class="card-body text-center">
-              <h5 class="card-title">${book.title}</h5>
-              <p class="text-muted mb-2">${book.author}</p>
-              <p class="mb-0 fw-bold text-danger">
-                <span class="text-muted text-decoration-line-through">${book.price.toFixed(2)}€</span>
-                --> <span class="text-success">${precioFinal}€</span>
-              </p>
+  const html = librosAleatorios
+    .map(book => {
+      const descuento = Math.floor(Math.random() * 30) + 10; // 10–40%
+      const precioFinal = (book.price * (1 - descuento / 100)).toFixed(2);
+
+      // Guardamos el descuento del libro
+      descuentos.push({ id: book.id, descuento });
+
+      return `
+        <div class="col-md-3 mb-4">
+          <a href="detalle.html?id=${book.id}" class="text-decoration-none text-dark">
+            <div class="card book-card shadow-sm h-100 position-relative overflow-hidden">
+              <span class="badge bg-danger position-absolute top-0 end-0 m-2 p-2 shadow">-${descuento}%</span>
+              <img src="${book.image}" class="card-img-top" alt="${book.title}">
+              <div class="card-body text-center">
+                <h5 class="card-title">${book.title}</h5>
+                <p class="text-muted mb-2">${book.author}</p>
+                <p class="mb-0 fw-bold text-danger">
+                  <span class="text-muted text-decoration-line-through">${book.price.toFixed(2)}€</span>
+                  <span style='color:black'>🡪</span> <span class="text-fail">${precioFinal}€</span>
+                </p>
+              </div>
             </div>
-          </div>
-        </a>
-      </div>
-    `;
-  }).join("");
+          </a>
+        </div>
+      `;
+    })
+    .join("");
 
   ofertasContainer.innerHTML = html;
+
+  // Guardamos los descuentos en LocalStorage
+  localStorage.setItem("ofertasLibros", JSON.stringify(descuentos));
 }
+
 
 // === Inicialización catálogo ===
 document.addEventListener("DOMContentLoaded", () => {
@@ -165,3 +178,5 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("reset", () => setTimeout(() => renderBooks(sampleBooks), 0));
   }
 });
+
+
