@@ -52,116 +52,42 @@ const sampleBooks = [
   { id: 50, title: "Los juegos del hambre", author: "Suzanne Collins", type: "Distopía", pages: 384, price: 21.99, image: "img/libro1.png", summary: "Sociedad distópica donde jóvenes luchan por sobrevivir en un reality mortal." }
 ];
 
-
-// === Renderizar todos los libros en el catálogo ===
-function renderBooks(list) {
-  const container = document.getElementById("books-list");
+function renderBookDetail() {
+  const container = document.getElementById("book-detail");
   if (!container) return;
-  container.innerHTML = "";
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "books-grid";
+  const params = new URLSearchParams(window.location.search);
+  const id = parseInt(params.get("id"));
+  const book = sampleBooks.find(b => b.id === id);
 
-  list.forEach(b => {
-    const card = document.createElement("div");
-    card.className = "book-card";
-    card.innerHTML = `
-      <a href="detalle.html?id=${b.id}" class="book-link">
-        <div class="card shadow-sm">
-          <img src="${b.image}" alt="${b.title}" class="book-img">
-          <div class="card-body">
-            <h5 class="card-title">${b.title}</h5>
-            <p class="card-author">${b.author}</p>
-            <p class="card-meta">${b.type} · ${b.pages} páginas</p>
-          </div>
-        </div>
-      </a>`;
-    wrapper.appendChild(card);
-  });
-
-  container.appendChild(wrapper);
-}
-
-// === Poblamos datalist de tipos ===
-function populateTypeFilter() {
-  const dataList = document.getElementById("types-list");
-  if (!dataList) return;
-  const types = [...new Set(sampleBooks.map(b => b.type))];
-  dataList.innerHTML = "";
-  types.forEach(type => {
-    const option = document.createElement("option");
-    option.value = type;
-    dataList.appendChild(option);
-  });
-}
-
-// === Filtrar libros según inputs ===
-function filterBooks() {
-  const q = document.getElementById("search-q").value.toLowerCase().trim();
-  const typeInput = document.getElementById("filter-type");
-  const typeValue = typeInput.value.toLowerCase().trim();
-  const author = document.getElementById("filter-author").value.toLowerCase().trim();
-  const minPages = parseInt(document.getElementById("filter-min-pages").value);
-  const maxPages = parseInt(document.getElementById("filter-max-pages").value);
-
-  const filtered = sampleBooks.filter(b => {
-    const matchesTitle = b.title.toLowerCase().includes(q);
-    const matchesType = typeValue === "" || b.type.toLowerCase().includes(typeValue);
-    const matchesAuthor = b.author.toLowerCase().includes(author);
-    const matchesMinPages = isNaN(minPages) || b.pages >= minPages;
-    const matchesMaxPages = isNaN(maxPages) || b.pages <= maxPages;
-
-    return matchesTitle && matchesType && matchesAuthor && matchesMinPages && matchesMaxPages;
-  });
-
-  renderBooks(filtered);
-}
-
-// === Mostrar ofertas aleatorias ===
-function mostrarDescuentos() {
-  const ofertasContainer = document.getElementById("ofertas");
-  if (!ofertasContainer) return;
-
-  const librosAleatorios = sampleBooks
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 4);
-
-  const html = librosAleatorios.map(book => {
-    const descuento = Math.floor(Math.random() * 30) + 10; // 10–40%
-    const precioFinal = (book.price * (1 - descuento / 100)).toFixed(2);
-
-    return `
-      <div class="col-md-3 mb-4">
-        <a href="detalle.html?id=${book.id}" class="text-decoration-none text-dark">
-          <div class="card book-card shadow-sm h-100 position-relative overflow-hidden">
-            <span class="badge bg-danger position-absolute top-0 end-0 m-2 p-2 shadow">-${descuento}%</span>
-            <img src="${book.image}" class="card-img-top" alt="${book.title}">
-            <div class="card-body text-center">
-              <h5 class="card-title">${book.title}</h5>
-              <p class="text-muted mb-2">${book.author}</p>
-              <p class="mb-0 fw-bold text-danger">
-                <span class="text-muted text-decoration-line-through">${book.price.toFixed(2)}€</span>
-                --> <span class="text-success">${precioFinal}€</span>
-              </p>
-            </div>
-          </div>
-        </a>
-      </div>
-    `;
-  }).join("");
-
-  ofertasContainer.innerHTML = html;
-}
-
-// === Inicialización catálogo ===
-document.addEventListener("DOMContentLoaded", () => {
-  renderBooks(sampleBooks);
-  populateTypeFilter();
-  mostrarDescuentos();
-
-  const form = document.getElementById("catalog-form");
-  if (form) {
-    form.addEventListener("input", filterBooks);
-    form.addEventListener("reset", () => setTimeout(() => renderBooks(sampleBooks), 0));
+  if (!book) {
+    container.innerHTML = `<div class="alert alert-danger text-center my-5">
+      Libro no encontrado. <a href="catalogo.html" class="btn btn-outline-secondary">Volver al catálogo</a>
+    </div>`;
+    return;
   }
-});
+
+  container.innerHTML = `
+    <div class="book-detail">
+      <div class="book-image">
+        <img src="${book.image}" alt="${book.title}">
+      </div>
+      <div class="book-info">
+        <h1>${book.title}</h1>
+        <p class="book-meta">${book.author} · ISBN: ${book.id} · Nº páginas: ${book.pages}</p>
+        <span class="book-type">${book.type}</span>
+        <div class="book-price">${book.price.toFixed(2)} €</div>
+        <button class="btn btn-add">Añadir a la cesta</button>
+        <div class="format-options">
+          <button class="btn btn-outline-secondary">Tapa dura ${book.price.toFixed(2)} €</button>
+          <button class="btn btn-outline-secondary">eBook ${(book.price/2).toFixed(2)} €</button>
+          <button class="btn btn-outline-secondary">Audiolibro ${(book.price*0.9).toFixed(2)} €</button>
+        </div>
+        <p class="book-summary">${book.summary}</p>
+      </div>
+    </div>
+  `;
+}
+
+// Inicialización detalle
+document.addEventListener("DOMContentLoaded", renderBookDetail);
