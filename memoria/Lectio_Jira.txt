@@ -1,0 +1,228 @@
+ÉPICA 1: Autenticación de usuarios
+
+Objetivo: Permitir a los usuarios registrarse, iniciar y cerrar sesión de forma segura.
+
+Historias de usuario:
+🧾 Historia 1.1: Registro de usuario
+
+Como visitante
+quiero registrarme en la aplicación
+para poder acceder a mi cuenta y funcionalidades personalizadas.
+
+Criterios de aceptación:
+
+El formulario debe solicitar nombre, correo, contraseña y confirmación de contraseña.
+
+Validar que el correo no esté registrado.
+
+Mostrar mensajes de error claros.
+
+Tareas:
+
+ Crear diseño del formulario de registro (frontend).
+
+ Implementar endpoint de registro (backend).
+
+ Validar datos de usuario en frontend y backend.
+
+ Guardar usuario en base de datos.
+
+ Mostrar mensaje de éxito o error.
+
+🧾 Historia 1.2: Inicio de sesión
+
+Como usuario registrado
+quiero iniciar sesión
+para acceder a mi cuenta y funcionalidades.
+
+Criterios de aceptación:
+
+Permitir acceso con correo y contraseña.
+
+Validar credenciales.
+
+Mantener sesión activa con token o cookie segura.
+
+Tareas:
+
+ Crear formulario de inicio de sesión.
+
+ Implementar autenticación (JWT o sesión).
+
+ Gestionar errores de login.
+
+ Redirigir al catálogo tras iniciar sesión.
+
+🧾 Historia 1.3: Cierre de sesión
+
+Como usuario autenticado
+quiero cerrar sesión
+para proteger mi cuenta cuando dejo de usar la aplicación.
+
+Tareas:
+
+ Implementar botón de cierre de sesión.
+
+ Eliminar token o cookie de sesión.
+
+ Redirigir a la página inicial.
+
+🧩 ÉPICA 2: Catálogo de libros
+
+Objetivo: Permitir a los usuarios explorar, filtrar y buscar libros.
+
+Historias de usuario:
+🧾 Historia 2.1: Visualizar catálogo
+
+Como usuario
+quiero ver el catálogo completo de libros
+para conocer las opciones disponibles.
+
+Tareas:
+
+ Crear diseño del catálogo.
+
+ Implementar listado de libros desde la base de datos.
+
+ Mostrar título, autor, precio y portada.
+
+🧾 Historia 2.2: Buscar libros
+
+Como usuario
+quiero buscar libros por autor, título, precio, género o número de páginas
+para encontrar fácilmente el libro que quiero.
+
+Tareas:
+
+ Crear barra de búsqueda y filtros.
+
+ Implementar lógica de filtrado en backend.
+
+ Mostrar resultados actualizados dinámicamente.
+
+🧾 Historia 2.3: Detalle del libro
+
+Como usuario
+quiero ver la información completa de un libro al seleccionarlo
+para conocer todos sus detalles antes de comprar o leer opiniones.
+
+Criterios de aceptación:
+
+Mostrar imagen, título, autor, precio, formato, género y número de páginas.
+
+Mostrar opiniones y valoraciones.
+
+Tareas:
+
+ Crear página “Detalle del libro”.
+
+ Implementar endpoint para obtener información de un libro.
+
+ Diseñar secciones de datos y opiniones.
+
+🧩 ÉPICA 3: Página principal
+
+Objetivo: Mostrar una vista general atractiva con libros destacados.
+
+Historias de usuario:
+🧾 Historia 3.1: Ver libros en oferta
+
+Como visitante
+quiero ver los libros con descuento en la página principal
+para aprovechar las promociones.
+
+Tareas:
+
+ Crear sección “Ofertas”.
+
+ Implementar lógica para marcar libros con descuento.
+
+🧾 Historia 3.2: Ver los más vendidos
+
+Como visitante
+quiero ver los libros más vendidos
+para descubrir los títulos más populares.
+
+Tareas:
+
+ Crear sección “Más vendidos”.
+
+ Obtener libros por cantidad de ventas.
+
+🧾 Historia 3.3: Ver opiniones de los libros
+
+Como visitante
+quiero leer opiniones de otros usuarios
+para decidir si un libro me interesa.
+
+Tareas:
+
+ Mostrar opiniones en la ficha del libro.
+
+ Implementar sistema de valoración (1–5 estrellas).
+
+🧩 ÉPICA 4: Administración del catálogo
+
+Objetivo: Permitir al administrador gestionar los libros del sistema.
+
+Historias de usuario:
+🧾 Historia 4.1: Añadir libro
+
+Como administrador
+quiero añadir nuevos libros al catálogo
+para mantener la base de datos actualizada.
+
+Tareas:
+
+ Crear formulario de alta de libro.
+
+ Validar campos requeridos.
+
+ Guardar nuevo libro en la base de datos.
+
+🧾 Historia 4.2: Editar libro
+
+Como administrador
+quiero modificar la información de un libro existente
+para corregir o actualizar sus datos.
+
+Tareas:
+
+ Crear formulario de edición.
+
+ Implementar endpoint de actualización.
+
+ Validar cambios antes de guardar.
+
+🧾 Historia 4.3: Eliminar libro
+
+Como administrador
+quiero eliminar libros del catálogo
+para retirar los que ya no estén disponibles.
+
+Tareas:
+
+ Añadir botón de eliminación.
+
+ Confirmar acción antes de borrar.
+
+ Actualizar listado del catálogo tras eliminar.
+
+🧩 ÉPICA 5: Opiniones y valoraciones
+
+Objetivo: Permitir a los usuarios dejar reseñas sobre los libros.
+
+Historias de usuario:
+🧾 Historia 5.1: Dejar opinión
+
+Como usuario autenticado
+quiero dejar mi opinión y valoración sobre un libro
+para compartir mi experiencia con otros lectores.
+
+Tareas:
+
+ Crear formulario de opinión.
+
+ Implementar almacenamiento en base de datos.
+
+ Mostrar las opiniones en el detalle del libro.
