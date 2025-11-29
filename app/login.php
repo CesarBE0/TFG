@@ -9,7 +9,7 @@ $input = json_decode($json_data, true);
 
 // 2. Si recibimos un array y tiene la clave 'action', procesamos como API
 if (is_array($input) && isset($input['action'])) {
-    
+
     header('Content-Type: application/json');
 
     // --- Configuración de Base de Datos ---
@@ -18,11 +18,13 @@ if (is_array($input) && isset($input['action'])) {
     $user = 'alumno';
     $pass = 'alumno';
 
-    // Usamos @ para suprimir errores visuales de PHP y manejarlos nosotros
-    $conn = @new mysqli($host, $user, $pass, $db);
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-    if ($conn->connect_error) {
-        echo json_encode(["status" => "error", "message" => "Error DB: " . $conn->connect_error]);
+    try {
+        $conn = new mysqli($host, $user, $pass, $db);
+    } catch (Exception $e) {
+        // Capturamos el error para devolverlo en formato JSON legible por el JS
+        echo json_encode(["status" => "error", "message" => "No se pudo conectar a la BD: " . $e->getMessage()]);
         exit;
     }
 
@@ -153,13 +155,12 @@ if (is_array($input) && isset($input['action'])) {
         // Función para enviar datos a PHP
         async function sendData(data) {
             try {
-                // Enviamos los datos al mismo archivo (login.php)
                 const response = await fetch('login.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                
+
                 return await response.json();
             } catch (error) {
                 console.error('Error:', error);
@@ -177,10 +178,12 @@ if (is_array($input) && isset($input['action'])) {
                 password: document.getElementById('register_password').value
             });
 
-            alert(result.message);
+            // CAMBIO: Si es exitoso, redirigimos directo sin alert
             if(result.status === 'success') {
-                container.classList.remove('active'); // Volver al login
-                document.getElementById('form_register').reset();
+                window.location.href = 'html/index.html';
+            } else {
+                // Solo mostramos alert si hay un error (ej. email ya existe)
+                alert(result.message);
             }
         });
 
@@ -193,9 +196,9 @@ if (is_array($input) && isset($input['action'])) {
                 password: document.getElementById('login_password').value
             });
 
+            // CAMBIO: Si es exitoso, redirigimos directo sin alert
             if(result.status === 'success') {
-                alert(result.message);
-                window.location.href = 'html/index.html'; // Redirigir
+                window.location.href = 'html/index.html';
             } else {
                 alert(result.message);
             }

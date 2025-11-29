@@ -4,7 +4,7 @@ services:
     ports:
       - 8102:80
     volumes:
-      - ./../App:/var/www/html
+      - ./../app:/var/www/html
     hostname: tfg
     container_name: tfg
   mysql:
@@ -18,7 +18,7 @@ services:
       - MYSQL_DATABASE=lectio_db
     volumes:
       - mysql:/var/lib/mysql
-      - ./datos.sql:/docker-entrypoint-initdb.d/datos.sql
+      - ./db_lectio.sql:/docker-entrypoint-initdb.d/db_lectio.sql
       - ./mysql.cnf:/etc/mysql/conf.d/my.cnf
   phpmyadmin:
     image: phpmyadmin
