@@ -195,7 +195,7 @@ if (is_array($input) && isset($input['action'])) {
 
             if(result.status === 'success') {
                 alert(result.message);
-                window.location.href = 'index.html'; // Redirigir
+                window.location.href = 'html/index.html'; // Redirigir
             } else {
                 alert(result.message);
             }

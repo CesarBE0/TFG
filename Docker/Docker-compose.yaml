@@ -4,7 +4,7 @@ services:
     ports:
       - 8102:80
     volumes:
-      - ./../app:/var/www/html
+      - ./../App:/var/www/html
     hostname: tfg
     container_name: tfg
   mysql:
