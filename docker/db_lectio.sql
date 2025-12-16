@@ -1,5 +1,9 @@
-CREATE DATABASE IF NOT EXISTS lectio_db;
+SET NAMES utf8mb4;
+
+-- Asegura que la base de datos se cree con soporte para tildes y ñ
+CREATE DATABASE IF NOT EXISTS lectio_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE lectio_db;
+GRANT ALL PRIVILEGES ON lectio_db.* TO 'alumno'@'%';
 
 -- Tabla de Usuarios
 CREATE TABLE IF NOT EXISTS users (

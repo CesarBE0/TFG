@@ -21,7 +21,7 @@ async function loadBooks() {
     }
 }
 
-// === 2. Renderizar libros en el HTML ===
+// === 2. Renderizar libros en el HTML (IGUAL QUE EN INDEX.HTML) ===
 function renderBooks(list) {
     const container = document.getElementById("books-list");
     if (!container) return;
@@ -33,31 +33,33 @@ function renderBooks(list) {
     }
 
     const wrapper = document.createElement("div");
-    wrapper.className = "books-grid";
+    wrapper.className = "row g-4";
 
     list.forEach(b => {
-        // Convertimos precios a número por seguridad
         const precio = parseFloat(b.price).toFixed(2);
 
-        const card = document.createElement("div");
-        card.className = "book-card";
-        card.innerHTML = `
-      <a href="detalle.html?id=${b.id}" class="book-link">
-        <div class="card shadow-sm h-100">
-          <div class="book-img-container">
-             <img src="${b.image}" alt="${b.title}" class="book-img">
-          </div>
-          <div class="card-body">
-            <h5 class="card-title text-truncate" title="${b.title}">${b.title}</h5>
-            <p class="card-author text-muted small">${b.author}</p>
-            <div class="d-flex justify-content-between align-items-center mt-2">
-                <span class="badge bg-light text-dark border">${b.type}</span>
-                <span class="fw-bold text-primary">${precio} €</span>
+        const col = document.createElement("div");
+
+        // CAMBIO AQUÍ:
+        // 'col-6'       -> En móviles (pantallas pequeñas) ocupan la mitad (2 por fila)
+        // 'col-md-3'    -> En escritorio (pantallas medianas/grandes) ocupan un cuarto (4 por fila)
+        col.className = "col-6 col-md-3";
+
+        col.innerHTML = `
+          <a href="detalle.html?id=${b.id}" class="text-decoration-none text-dark">
+            <div class="card book-card h-100 position-relative">
+              <img src="${b.image}" alt="${b.title}" style="width: 100%; object-fit: contain; max-height: 300px;" class="p-3">
+              
+              <div class="card-body">
+                <h5 class="card-title text-truncate text-center">${b.title}</h5> 
+                <p class="text-muted small text-truncate text-center">${b.author}</p>
+                <p class="text-muted small text-truncate text-center">${b.pages} páginas</p> 
+                <p class="fw-bold text-primary mb-0 mt-2 text-center">${precio} €</p>
+              </div>
             </div>
-          </div>
-        </div>
-      </a>`;
-        wrapper.appendChild(card);
+          </a>`;
+
+        wrapper.appendChild(col);
     });
 
     container.appendChild(wrapper);
