@@ -1,77 +1,93 @@
 <?php
-/* -------------------------------------------------------------------------- */
-/* LÓGICA PHP (BACKEND)                                                       */
-/* -------------------------------------------------------------------------- */
-
-// 1. Intentamos leer los datos que llegan (Input Stream)
-$json_data = file_get_contents("php://input");
-$input = json_decode($json_data, true);
-
-// 2. Si recibimos un array y tiene la clave 'action', procesamos como API
-if (is_array($input) && isset($input['action'])) {
-
+// --- LÓGICA DEL BACKEND (PHP) ---
+// Se ejecuta solo si la petición es POST (enviada desde JavaScript)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Definimos que la respuesta será un JSON
     header('Content-Type: application/json');
 
-    // --- Configuración de Base de Datos ---
-    $host = 'mysql';
-    $db   = 'lectio_db';
-    $user = 'alumno';
-    $pass = 'alumno';
+    // 1. Conexión a la Base de Datos
+    $servidor = "db"; // Nombre del servicio en Docker o "localhost"
+    $usuario_bd = "root";
+    $password_bd = "test";
+    $nombre_bd = "db_lectio";
 
-    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    $conn = new mysqli($servidor, $usuario_bd, $password_bd, $nombre_bd);
 
-    try {
-        $conn = new mysqli($host, $user, $pass, $db);
-    } catch (Exception $e) {
-        // Capturamos el error para devolverlo en formato JSON legible por el JS
-        echo json_encode(["status" => "error", "message" => "No se pudo conectar a la BD: " . $e->getMessage()]);
+    // Verificar conexión
+    if ($conn->connect_error) {
+        echo json_encode(["success" => false, "message" => "Conexión fallida: " . $conn->connect_error]);
         exit;
     }
 
-    $action = $input['action'];
+    // Obtener la acción a realizar (login o registro)
+    $accion = $_POST['accion'] ?? '';
 
-    // --- REGISTRO ---
-    if ($action === 'register') {
-        $name = $conn->real_escape_string($input['name']);
-        $email = $conn->real_escape_string($input['email']);
-        $password = password_hash($input['password'], PASSWORD_DEFAULT);
+    // 2. Procesar Registro
+    if ($accion === 'registro') {
+        $usuario = $_POST['usuario'];
+        $email = $_POST['email'];
+        $password = $_POST['password'];
 
-        // Validar si existe
-        $check = $conn->query("SELECT id FROM users WHERE email = '$email'");
-        if ($check && $check->num_rows > 0) {
-            echo json_encode(["status" => "error", "message" => "El email ya existe"]);
+        // Encriptar la contraseña por seguridad
+        $passHash = password_hash($password, PASSWORD_BCRYPT);
+
+        // Verificar si el correo ya existe en la base de datos
+        $check = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
+        $check->bind_param("s", $email);
+        $check->execute();
+        $check->store_result();
+
+        if ($check->num_rows > 0) {
+            echo json_encode(["success" => false, "message" => "El correo electrónico ya está registrado"]);
         } else {
-            $sql = "INSERT INTO users (name, email, password) VALUES ('$name', '$email', '$password')";
-            if ($conn->query($sql) === TRUE) {
-                echo json_encode(["status" => "success", "message" => "¡Usuario registrado correctamente!"]);
+            // Insertar el nuevo usuario
+            $stmt = $conn->prepare("INSERT INTO usuarios (username, email, password) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $usuario, $email, $passHash);
+
+            if ($stmt->execute()) {
+                echo json_encode(["success" => true, "message" => "Usuario registrado correctamente"]);
             } else {
-                echo json_encode(["status" => "error", "message" => "Error al registrar"]);
+                echo json_encode(["success" => false, "message" => "Error al guardar en la base de datos"]);
             }
+            $stmt->close();
         }
-    } 
-    // --- LOGIN ---
-    elseif ($action === 'login') {
-        $email = $conn->real_escape_string($input['email']);
-        $password = $input['password'];
+        $check->close();
 
-        $sql = "SELECT id, name, password FROM users WHERE email = '$email'";
-        $result = $conn->query($sql);
+        // 3. Procesar Inicio de Sesión
+    } elseif ($accion === 'login') {
+        $usuario = $_POST['usuario'];
+        $password = $_POST['password'];
 
-        if ($result && $result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            if (password_verify($password, $row['password'])) {
-                // Login correcto
-                echo json_encode(["status" => "success", "message" => "Bienvenido " . $row['name']]);
+        // Buscar al usuario por su nombre de usuario
+        $stmt = $conn->prepare("SELECT id, password FROM usuarios WHERE username = ?");
+        $stmt->bind_param("s", $usuario);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $stmt->bind_result($id, $hash);
+            $stmt->fetch();
+
+            // Verificar si la contraseña coincide con la encriptada
+            if (password_verify($password, $hash)) {
+                session_start();
+                $_SESSION['user_id'] = $id;
+                $_SESSION['username'] = $usuario;
+                echo json_encode(["success" => true, "message" => "Inicio de sesión correcto"]);
             } else {
-                echo json_encode(["status" => "error", "message" => "Contraseña incorrecta"]);
+                echo json_encode(["success" => false, "message" => "La contraseña es incorrecta"]);
             }
         } else {
-            echo json_encode(["status" => "error", "message" => "Usuario no encontrado"]);
+            echo json_encode(["success" => false, "message" => "Usuario no encontrado"]);
         }
+        $stmt->close();
+
+    } else {
+        echo json_encode(["success" => false, "message" => "Acción no válida"]);
     }
 
     $conn->close();
-    exit; // ¡IMPORTANTE! Detenemos la ejecución aquí para que no se cargue el HTML
+    exit; // Detiene la ejecución aquí para que no se muestre el HTML
 }
 ?>
 
@@ -79,130 +95,76 @@ if (is_array($input) && isset($input['action'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lectio - Login</title>
-
+    <title>Iniciar Sesión y Registro - Lectio</title>
     <link rel="stylesheet" href="css/login.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <div class="box">
-            <div class="form sign_in">
-                <h3>Sign In</h3>
-                <span>or use your account</span>
+<div class="container">
+    <div class="curved-shape"></div>
+    <div class="curved-shape2"></div>
 
-                <form id="form_login">
-                    <div class="type">
-                        <input type="email" placeholder="Email" id="login_email" required>
-                    </div>
-                    <div class="type">
-                        <input type="password" placeholder="Password" id="login_password" required>
-                    </div>
-                    <div class="forgot"><span>Forgot your password?</span></div>
-                    <button class="btn bkg">Sign In</button>
-                </form>
+    <div class="form-box Login">
+        <h2 class="animation" style="--D:0; --S:21">Iniciar Sesión</h2>
+        <form id="formLogin">
+            <div class="input-box animation" style="--D:0; --S:22">
+                <input type="text" id="loginUser" required />
+                <label>Usuario</label>
+                <i class="fa-solid fa-user"></i>
             </div>
-
-            <div class="form sign_up">
-                <h3>Sign Up</h3>
-                <span>or use your email for register</span>
-
-                <form id="form_register">
-                    <div class="type">
-                        <input type="text" placeholder="Name" id="register_name" required>
-                    </div>
-                    <div class="type">
-                        <input type="email" placeholder="Email" id="register_email" required>
-                    </div>
-                    <div class="type">
-                        <input type="password" placeholder="Password" id="register_password" required>
-                    </div>
-                    <button class="btn bkg">Sign Up</button>
-                </form>
+            <div class="input-box animation" style="--D:0; --S:23">
+                <input type="password" id="loginPass" required />
+                <label>Contraseña</label>
+                <i class="fa-solid fa-eye" id="toggleLogin"></i>
             </div>
-        </div>
-
-        <div class="overlay">
-            <div class="page page_signIn">
-                <h3>Welcome Back!</h3>
-                <p>To keep with us please login with your personal info</p>
-                <button class="btn btnSign-in">Sign Up <i class="bi bi-arrow-right"></i></button>
+            <div class="input-box animation" style="--D:0; --S:24">
+                <button type="button" class="btn" onclick="iniciarSesion()">Entrar</button>
             </div>
-            <div class="page page_signUp">
-                <h3>Hello Friend!</h3>
-                <p>Enter your personal details and start journey with us</p>
-                <button class="btn btnSign-up"><i class="bi bi-arrow-left"></i> Sign In</button>
+            <div class="input-box animation" style="--D:0; --S:25">
+                <p>¿No tienes cuenta? <a href="#" class="SignUpLink">Regístrate</a></p>
             </div>
-        </div>
+        </form>
     </div>
 
-    <script>
-        const container = document.querySelector('.container');
-        const btnSignIn = document.querySelector('.btnSign-in');
-        const btnSignUp = document.querySelector('.btnSign-up');
+    <div class="info-content Login">
+        <h2 class="animation" style="--D:0; --S:20">¡BIENVENIDO!</h2>
+        <p class="animation" style="--D:0; --S:21">Inicia sesión para acceder a tu biblioteca personal.</p>
+    </div>
 
-        // Animación de cambio entre Login y Registro
-        btnSignIn.addEventListener('click', () => {
-            container.classList.add('active');
-        });
+    <div class="form-box Signup">
+        <h2 class="animation" style="--li:17; --S:0">Registro</h2>
+        <form id="formRegister">
+            <div class="input-box animation" style="--li:18; --S:1">
+                <input type="text" id="regUser" required />
+                <label>Usuario</label>
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="input-box animation" style="--li:19; --S:1">
+                <input type="email" id="regEmail" required />
+                <label>Correo</label>
+                <i class="fa-solid fa-envelope"></i>
+            </div>
+            <div class="input-box animation" style="--li:20; --S:2">
+                <input type="password" id="regPass" required />
+                <label>Contraseña</label>
+                <i class="fa-solid fa-eye" id="toggleReg"></i>
+            </div>
+            <div class="input-box animation" style="--li:21; --S:3">
+                <button type="button" class="btn" onclick="registrarUsuario()">Registrarse</button>
+            </div>
+            <div class="regi-link animation" style="--li:22; --S:4">
+                <p>¿Ya tienes cuenta? <a href="#" class="SignInLink">Inicia Sesión</a></p>
+            </div>
+        </form>
+    </div>
 
-        btnSignUp.addEventListener('click', () => {
-            container.classList.remove('active');
-        });
+    <div class="info-content Signup">
+        <h2 class="animation" style="--li:17; --S:0">¡Únete a nosotros!</h2>
+        <p class="animation" style="--li:18; --S:1">Crea tu cuenta y descubre un mundo de libros.</p>
+    </div>
+</div>
 
-        // Función para enviar datos a PHP
-        async function sendData(data) {
-            try {
-                const response = await fetch('login.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                return await response.json();
-            } catch (error) {
-                console.error('Error:', error);
-                return { status: 'error', message: 'Error de comunicación' };
-            }
-        }
-
-        // 1. Manejar Registro
-        document.getElementById('form_register').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const result = await sendData({
-                action: 'register',
-                name: document.getElementById('register_name').value,
-                email: document.getElementById('register_email').value,
-                password: document.getElementById('register_password').value
-            });
-
-            // CAMBIO: Si es exitoso, redirigimos directo sin alert
-            if(result.status === 'success') {
-                window.location.href = 'html/index.html';
-            } else {
-                // Solo mostramos alert si hay un error (ej. email ya existe)
-                alert(result.message);
-            }
-        });
-
-        // 2. Manejar Login
-        document.getElementById('form_login').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const result = await sendData({
-                action: 'login',
-                email: document.getElementById('login_email').value,
-                password: document.getElementById('login_password').value
-            });
-
-            // CAMBIO: Si es exitoso, redirigimos directo sin alert
-            if(result.status === 'success') {
-                window.location.href = 'html/index.html';
-            } else {
-                alert(result.message);
-            }
-        });
-    </script>
+<script src="js/login.js"></script>
 </body>
 </html>
