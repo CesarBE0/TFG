@@ -17,23 +17,28 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function verificarSesion() {
+    // Evitar duplicados si ya se ha ejecutado
+    if (document.querySelector('.user-profile-container')) return;
+
     try {
-        // Petición al backend para ver si hay usuario logueado
         const response = await fetch('/login.php?accion=check_session');
         const data = await response.json();
 
-        // Seleccionamos el contenedor colapsable del navbar (id="nav")
+        // Elementos clave del Navbar
         const navbarCollapse = document.getElementById('nav');
+        const navbarToggler = document.querySelector('.navbar-toggler');
 
         if (data.logged_in) {
-            // === USUARIO LOGUEADO: CREAMOS EL CÍRCULO ===
-
+            // === USUARIO LOGUEADO ===
             const profileContainer = document.createElement('div');
-            profileContainer.className = 'user-profile-container';
 
-            // HTML: Botón circular + Menú desplegable
+            // CLASES CLAVE:
+            // 'order-lg-last': En PC se va al final del todo.
+            // 'ms-2': Margen a la izquierda para separarse de la hamburguesa en móvil.
+            profileContainer.className = 'user-profile-container order-lg-last ms-2';
+
             profileContainer.innerHTML = `
-                <button class="btn-user-profile" id="userBtn" aria-label="Menú de usuario">
+                <button class="btn-user-profile" id="userBtn" aria-label="Cuenta">
                     <i class="fa-solid fa-user"></i>
                 </button>
                 <div class="user-dropdown-menu" id="userDropdown">
@@ -50,7 +55,7 @@ async function verificarSesion() {
                 </div>
             `;
 
-            // Inyectamos FontAwesome si no existe (para los iconos)
+            // Cargar FontAwesome si no existe
             if (!document.querySelector('link[href*="font-awesome"]')) {
                 const link = document.createElement('link');
                 link.rel = 'stylesheet';
@@ -58,46 +63,61 @@ async function verificarSesion() {
                 document.head.appendChild(link);
             }
 
-            // AÑADIMOS AL FINAL DEL NAVBAR (A la derecha del todo)
-            navbarCollapse.appendChild(profileContainer);
+            // === LÓGICA DE POSICIONAMIENTO ===
+            if (navbarToggler) {
+                // 1. Empujamos la hamburguesa a la derecha (junto al logo a la izquierda, crea el espacio en medio)
+                navbarToggler.classList.add('ms-auto');
 
-            // === EVENTOS (CLIC) ===
+                // 2. Insertamos el perfil DESPUÉS de la hamburguesa
+                // (nextSibling inserta después del nodo actual)
+                navbarToggler.parentNode.insertBefore(profileContainer, navbarToggler.nextSibling);
+            } else {
+                // Fallback para PC si no hay botón móvil
+                navbarCollapse.parentNode.appendChild(profileContainer);
+            }
 
+            // === EVENTOS ===
             const userBtn = document.getElementById('userBtn');
             const dropdown = document.getElementById('userDropdown');
             const btnLogout = document.getElementById('btnLogout');
 
-            // 1. Abrir/Cerrar menú al pulsar el círculo
             userBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Evita que el clic llegue al document
+                e.stopPropagation();
                 dropdown.classList.toggle('show');
             });
 
-            // 2. Cerrar si hacemos clic fuera
             document.addEventListener('click', (e) => {
                 if (!profileContainer.contains(e.target)) {
                     dropdown.classList.remove('show');
                 }
             });
 
-            // 3. Botón Cerrar Sesión
             btnLogout.addEventListener('click', async (e) => {
                 e.preventDefault();
                 await cerrarSesion();
             });
 
         } else {
-            // === USUARIO NO LOGUEADO ===
-            // Solo mostramos botón "Entrar" si NO estamos ya en login.php
+            // === NO LOGUEADO (Botón Entrar) ===
             if (!window.location.pathname.includes('login.php')) {
-                const loginBtn = document.createElement('a');
-                loginBtn.href = '/login.php'; // Ruta corregida
-                loginBtn.className = 'btn btn-primary ms-3 rounded-pill px-4';
-                loginBtn.innerHTML = '<i class="fa-solid fa-user"></i> Iniciar Sesión';
-                navbarCollapse.appendChild(loginBtn);
+                if (!document.querySelector('.btn-login-nav')) {
+                    const loginBtn = document.createElement('a');
+                    loginBtn.href = '/login.php';
+                    // 'ms-auto' en el botón login para que también se pegue a la derecha si no hay perfil
+                    loginBtn.className = 'btn btn-primary btn-sm rounded-pill px-3 btn-login-nav order-lg-last ms-auto';
+                    loginBtn.innerHTML = '<i class="fa-solid fa-user"></i> Entrar';
+
+                    if (navbarToggler) {
+                        // En móvil: Logo ... Login Hamburguesa
+                        navbarToggler.classList.remove('ms-auto'); // Login ocupa ese espacio
+                        navbarToggler.parentNode.insertBefore(loginBtn, navbarToggler);
+                        loginBtn.classList.add('me-2'); // Separación
+                    } else {
+                        navbarCollapse.parentNode.appendChild(loginBtn);
+                    }
+                }
             }
         }
-
     } catch (error) {
         console.error("Error verificando sesión:", error);
     }
@@ -107,9 +127,8 @@ async function cerrarSesion() {
     try {
         const response = await fetch('/login.php?accion=logout');
         const data = await response.json();
-
         if (data.success) {
-            window.location.href = '/login.php'; // Redirige al login tras cerrar
+            window.location.href = '/login.php';
         }
     } catch (error) {
         console.error("Error al cerrar sesión", error);
