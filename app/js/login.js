@@ -3,46 +3,63 @@ const container = document.querySelector('.container');
 const LoginLink = document.querySelector('.SignInLink');
 const RegisterLink = document.querySelector('.SignUpLink');
 
-RegisterLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    container.classList.add('active');
-});
+if(RegisterLink) {
+    RegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        container.classList.add('active');
+    });
+}
 
-LoginLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    container.classList.remove('active');
-});
+if(LoginLink) {
+    LoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        container.classList.remove('active');
+    });
+}
 
-/* --- LÓGICA DE MOSTRAR/OCULTAR CONTRASEÑA --- */
+/* --- MOSTRAR/OCULTAR CONTRASEÑA --- */
 function setupPasswordToggle(toggleId, inputId) {
     const toggleIcon = document.getElementById(toggleId);
     const passwordInput = document.getElementById(inputId);
-
     if (toggleIcon && passwordInput) {
         toggleIcon.addEventListener('click', () => {
-            // Verificar tipo actual
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-
-            // Cambiar icono (ojo abierto / ojo cerrado)
             toggleIcon.classList.toggle('fa-eye');
             toggleIcon.classList.toggle('fa-eye-slash');
         });
     }
 }
-
-// Inicializar los toggles para Login y Registro
 setupPasswordToggle('toggleLogin', 'loginPass');
 setupPasswordToggle('toggleReg', 'regPass');
 
 
-/* --- LÓGICA DE DATOS (FETCH A LOGIN.PHP) --- */
+/* --- LÓGICA DE ENVÍO (Interceptamos el formulario aquí) --- */
+
+// Listener para el formulario de Login
+const formLogin = document.getElementById('formLogin');
+if(formLogin){
+    formLogin.addEventListener('submit', function(e) {
+        e.preventDefault(); // EVITA QUE LA PÁGINA SE RECARGUE
+        iniciarSesion();
+    });
+}
+
+// Listener para el formulario de Registro
+const formRegister = document.getElementById('formRegister');
+if(formRegister){
+    formRegister.addEventListener('submit', function(e) {
+        e.preventDefault(); // EVITA QUE LA PÁGINA SE RECARGUE
+        registrarUsuario();
+    });
+}
+
+
+/* --- FUNCIONES DE CONEXIÓN --- */
 
 async function iniciarSesion() {
     const usuario = document.getElementById('loginUser').value;
     const pass = document.getElementById('loginPass').value;
-
-    if(!usuario || !pass) return alert("Completa todos los campos");
 
     const datos = new FormData();
     datos.append('accion', 'login');
@@ -50,19 +67,22 @@ async function iniciarSesion() {
     datos.append('password', pass);
 
     try {
-        const respuesta = await fetch('login.php', {
-            method: 'POST',
-            body: datos
-        });
+        const respuesta = await fetch('login.php', { method: 'POST', body: datos });
+
+        // Verificamos si la respuesta es JSON válido
+        if (!respuesta.ok) throw new Error("Error en la respuesta del servidor");
+
         const resultado = await respuesta.json();
 
-        if(resultado.success) {
-            window.location.href = 'index.html';
+        if (resultado.success) {
+            // REDIRECCIÓN ABSOLUTA
+            window.location.href = '/html/index.html';
         } else {
             alert("Error: " + resultado.message);
         }
     } catch (error) {
         console.error('Error:', error);
+        alert("Ocurrió un error. Revisa la consola (F12) para más detalles.");
     }
 }
 
@@ -71,8 +91,6 @@ async function registrarUsuario() {
     const email = document.getElementById('regEmail').value;
     const pass = document.getElementById('regPass').value;
 
-    if(!usuario || !email || !pass) return alert("Completa todos los campos");
-
     const datos = new FormData();
     datos.append('accion', 'registro');
     datos.append('usuario', usuario);
@@ -80,19 +98,20 @@ async function registrarUsuario() {
     datos.append('password', pass);
 
     try {
-        const respuesta = await fetch('login.php', {
-            method: 'POST',
-            body: datos
-        });
+        const respuesta = await fetch('login.php', { method: 'POST', body: datos });
+
+        if (!respuesta.ok) throw new Error("Error en la respuesta del servidor");
+
         const resultado = await respuesta.json();
 
-        if(resultado.success) {
-            alert("¡Registro exitoso! Inicia sesión.");
-            container.classList.remove('active');
+        if (resultado.success) {
+            // REDIRECCIÓN ABSOLUTA (Sin alertas intermedias)
+            window.location.href = '/html/index.html';
         } else {
             alert("Error: " + resultado.message);
         }
     } catch (error) {
         console.error('Error:', error);
+        alert("Ocurrió un error al registrarse.");
     }
 }

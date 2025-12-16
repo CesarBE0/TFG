@@ -1,25 +1,24 @@
 <?php
 // --- LÓGICA DEL BACKEND (PHP) ---
-// Se ejecuta solo si la petición es POST (enviada desde JavaScript)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Definimos que la respuesta será un JSON
     header('Content-Type: application/json');
 
-    // 1. Conexión a la Base de Datos
-    $servidor = "db"; // Nombre del servicio en Docker o "localhost"
-    $usuario_bd = "root";
-    $password_bd = "test";
-    $nombre_bd = "db_lectio";
+    // Credenciales (ajustadas a tu docker-compose)
+    $servidor = "mysql";
+    $usuario_bd = "alumno";
+    $password_bd = "alumno";
+    $nombre_bd = "lectio_db";
 
-    $conn = new mysqli($servidor, $usuario_bd, $password_bd, $nombre_bd);
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-    // Verificar conexión
-    if ($conn->connect_error) {
-        echo json_encode(["success" => false, "message" => "Conexión fallida: " . $conn->connect_error]);
+    try {
+        $conn = new mysqli($servidor, $usuario_bd, $password_bd, $nombre_bd);
+        $conn->set_charset("utf8mb4");
+    } catch (Exception $e) {
+        echo json_encode(["success" => false, "message" => "Error de conexión: " . $e->getMessage()]);
         exit;
     }
 
-    // Obtener la acción a realizar (login o registro)
     $accion = $_POST['accion'] ?? '';
 
     // 2. Procesar Registro
@@ -28,38 +27,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = $_POST['email'];
         $password = $_POST['password'];
 
-        // Encriptar la contraseña por seguridad
         $passHash = password_hash($password, PASSWORD_BCRYPT);
 
-        // Verificar si el correo ya existe en la base de datos
-        $check = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
+        $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
         $check->bind_param("s", $email);
         $check->execute();
         $check->store_result();
 
         if ($check->num_rows > 0) {
-            echo json_encode(["success" => false, "message" => "El correo electrónico ya está registrado"]);
+            echo json_encode(["success" => false, "message" => "El correo ya está registrado"]);
         } else {
-            // Insertar el nuevo usuario
-            $stmt = $conn->prepare("INSERT INTO usuarios (username, email, password) VALUES (?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
             $stmt->bind_param("sss", $usuario, $email, $passHash);
 
             if ($stmt->execute()) {
-                echo json_encode(["success" => true, "message" => "Usuario registrado correctamente"]);
+                session_start();
+                $_SESSION['user_id'] = $stmt->insert_id;
+                $_SESSION['username'] = $usuario;
+                echo json_encode(["success" => true, "message" => "Registro correcto"]);
             } else {
-                echo json_encode(["success" => false, "message" => "Error al guardar en la base de datos"]);
+                echo json_encode(["success" => false, "message" => "Error al guardar usuario"]);
             }
             $stmt->close();
         }
         $check->close();
 
-        // 3. Procesar Inicio de Sesión
+        // 3. Procesar Login
     } elseif ($accion === 'login') {
         $usuario = $_POST['usuario'];
         $password = $_POST['password'];
 
-        // Buscar al usuario por su nombre de usuario
-        $stmt = $conn->prepare("SELECT id, password FROM usuarios WHERE username = ?");
+        $stmt = $conn->prepare("SELECT id, password FROM users WHERE name = ?");
         $stmt->bind_param("s", $usuario);
         $stmt->execute();
         $stmt->store_result();
@@ -68,14 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_result($id, $hash);
             $stmt->fetch();
 
-            // Verificar si la contraseña coincide con la encriptada
             if (password_verify($password, $hash)) {
                 session_start();
                 $_SESSION['user_id'] = $id;
                 $_SESSION['username'] = $usuario;
-                echo json_encode(["success" => true, "message" => "Inicio de sesión correcto"]);
+                echo json_encode(["success" => true, "message" => "Login correcto"]);
             } else {
-                echo json_encode(["success" => false, "message" => "La contraseña es incorrecta"]);
+                echo json_encode(["success" => false, "message" => "Contraseña incorrecta"]);
             }
         } else {
             echo json_encode(["success" => false, "message" => "Usuario no encontrado"]);
@@ -83,11 +80,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
 
     } else {
-        echo json_encode(["success" => false, "message" => "Acción no válida"]);
+        echo json_encode(["success" => false, "message" => "Acción inválida"]);
     }
-
     $conn->close();
-    exit; // Detiene la ejecución aquí para que no se muestre el HTML
+    exit;
 }
 ?>
 
@@ -96,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión y Registro - Lectio</title>
+    <title>Lectio - Acceso</title>
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -119,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <i class="fa-solid fa-eye" id="toggleLogin"></i>
             </div>
             <div class="input-box animation" style="--D:0; --S:24">
-                <button type="button" class="btn" onclick="iniciarSesion()">Entrar</button>
+                <button type="submit" class="btn">Entrar</button>
             </div>
             <div class="input-box animation" style="--D:0; --S:25">
                 <p>¿No tienes cuenta? <a href="#" class="SignUpLink">Regístrate</a></p>
@@ -151,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <i class="fa-solid fa-eye" id="toggleReg"></i>
             </div>
             <div class="input-box animation" style="--li:21; --S:3">
-                <button type="button" class="btn" onclick="registrarUsuario()">Registrarse</button>
+                <button type="submit" class="btn">Registrarse</button>
             </div>
             <div class="regi-link animation" style="--li:22; --S:4">
                 <p>¿Ya tienes cuenta? <a href="#" class="SignInLink">Inicia Sesión</a></p>
