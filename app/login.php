@@ -1,32 +1,57 @@
 <?php
 // --- LÓGICA DEL BACKEND (PHP) ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+session_start(); // Iniciamos sesión al principio para poder acceder a $_SESSION
+
+// Manejo de solicitudes JSON (AJAX)
+if (isset($_REQUEST['accion'])) {
     header('Content-Type: application/json');
 
-    // Credenciales (ajustadas a tu docker-compose)
+    // Credenciales
     $servidor = "mysql";
     $usuario_bd = "alumno";
     $password_bd = "alumno";
     $nombre_bd = "lectio_db";
 
+    // Conexión segura
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+    // --- ACCIÓN: CHECK SESSION (Comprobar estado) ---
+    if ($_REQUEST['accion'] === 'check_session') {
+        if (isset($_SESSION['user_id'])) {
+            echo json_encode([
+                    "logged_in" => true,
+                    "username" => $_SESSION['username']
+            ]);
+        } else {
+            echo json_encode(["logged_in" => false]);
+        }
+        exit;
+    }
+
+    // --- ACCIÓN: LOGOUT (Cerrar sesión) ---
+    if ($_REQUEST['accion'] === 'logout') {
+        session_unset();
+        session_destroy();
+        echo json_encode(["success" => true]);
+        exit;
+    }
+
+    // Para Login y Registro necesitamos conexión a BD
     try {
         $conn = new mysqli($servidor, $usuario_bd, $password_bd, $nombre_bd);
         $conn->set_charset("utf8mb4");
     } catch (Exception $e) {
-        echo json_encode(["success" => false, "message" => "Error de conexión: " . $e->getMessage()]);
+        echo json_encode(["success" => false, "message" => "Error conexión: " . $e->getMessage()]);
         exit;
     }
 
-    $accion = $_POST['accion'] ?? '';
+    $accion = $_REQUEST['accion'];
 
-    // 2. Procesar Registro
-    if ($accion === 'registro') {
+    // --- ACCIÓN: REGISTRO ---
+    if ($accion === 'registro' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $usuario = $_POST['usuario'];
         $email = $_POST['email'];
         $password = $_POST['password'];
-
         $passHash = password_hash($password, PASSWORD_BCRYPT);
 
         $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
@@ -35,25 +60,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $check->store_result();
 
         if ($check->num_rows > 0) {
-            echo json_encode(["success" => false, "message" => "El correo ya está registrado"]);
+            echo json_encode(["success" => false, "message" => "El correo ya existe"]);
         } else {
             $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
             $stmt->bind_param("sss", $usuario, $email, $passHash);
-
             if ($stmt->execute()) {
-                session_start();
                 $_SESSION['user_id'] = $stmt->insert_id;
                 $_SESSION['username'] = $usuario;
                 echo json_encode(["success" => true, "message" => "Registro correcto"]);
             } else {
-                echo json_encode(["success" => false, "message" => "Error al guardar usuario"]);
+                echo json_encode(["success" => false, "message" => "Error al guardar"]);
             }
             $stmt->close();
         }
         $check->close();
 
-        // 3. Procesar Login
-    } elseif ($accion === 'login') {
+        // --- ACCIÓN: LOGIN ---
+    } elseif ($accion === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $usuario = $_POST['usuario'];
         $password = $_POST['password'];
 
@@ -65,9 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($id, $hash);
             $stmt->fetch();
-
             if (password_verify($password, $hash)) {
-                session_start();
                 $_SESSION['user_id'] = $id;
                 $_SESSION['username'] = $usuario;
                 echo json_encode(["success" => true, "message" => "Login correcto"]);
@@ -80,7 +101,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
 
     } else {
-        echo json_encode(["success" => false, "message" => "Acción inválida"]);
+        // Si no es check_session ni logout y falló el método
+        if($accion !== 'login' && $accion !== 'registro') {
+            echo json_encode(["success" => false, "message" => "Acción inválida"]);
+        }
     }
     $conn->close();
     exit;

@@ -69,14 +69,13 @@ async function iniciarSesion() {
     try {
         const respuesta = await fetch('login.php', { method: 'POST', body: datos });
 
-        // Verificamos si la respuesta es JSON válido
         if (!respuesta.ok) throw new Error("Error en la respuesta del servidor");
 
         const resultado = await respuesta.json();
 
         if (resultado.success) {
-            // REDIRECCIÓN ABSOLUTA
-            window.location.href = '/html/index.html';
+            // CORREGIDO: Redirección a la raíz, no a /html/
+            window.location.href = '/index.html';
         } else {
             alert("Error: " + resultado.message);
         }
@@ -105,8 +104,8 @@ async function registrarUsuario() {
         const resultado = await respuesta.json();
 
         if (resultado.success) {
-            // REDIRECCIÓN ABSOLUTA (Sin alertas intermedias)
-            window.location.href = '/html/index.html';
+            // CORREGIDO: Redirección a la raíz, no a /html/
+            window.location.href = '/index.html';
         } else {
             alert("Error: " + resultado.message);
         }
