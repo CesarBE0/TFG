@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lectio - Tu Biblioteca Online</title>
+  <link rel="icon" type="image/png" href="logos/opcion1.webp">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background-color: #f9fafb;
+    }
+
+    h2 {
+      color: rgb(150, 128, 0);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(to right, #f5f5dc, #fff6b7);
+      padding: 4rem 2rem;
+      text-align: center;
+      border-bottom: 4px solid rgb(150, 128, 0);
+    }
+
+    .hero h1 {
+      font-weight: 800;
+      color: #3b3b3b;
+    }
+
+    .discount-badge {
+      background-color: #e6007e;
+      color: white;
+      font-weight: bold;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    /* Opiniones */
+    .testimonial {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      margin: 0.5rem;
+    }
+
+    footer {
+      background: rgb(150, 128, 0);
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- === Navbar === -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <div class="container">
+      <a href="index.html" class="d-flex align-items-center text-decoration-none">
+        <img src="logos/opcion1.webp" alt="Logo" width="40" height="40" class="me-2">
+        <span class="navbar-brand mb-0 h1" style="color: rgb(150, 128, 0);"><b>Lectio</b></span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+        aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="index.html">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="catalogo.html">Catálogo</a></li>
+          <li class="nav-item"><a class="nav-link" href="eventos.html">Eventos</a></li>
+          <li class="nav-item"><a class="nav-link" href="opiniones.html">Opiniones</a></li>
+          <li class="nav-item"><a class="nav-link" href="contacto.html">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- === Hero Section === -->
+  <section class="hero">
+    <h1>Bienvenido a <b>Lectio</b>, la mejor biblioteca de toda España</h1>
+    <p class="lead mt-3">Descubre descuentos, novedades y los libros más vendidos del momento.</p>
+    <a href="catalogo.html" class="btn btn-dark mt-3 px-4 py-2">Ir al catálogo</a>
+  </section>
+
+  <!-- === Descuentos Destacados === -->
+  <section class="section container" >
+    <h2>🏷️ Descuentos destacados</h2>
+    <div class="row g-4" id="ofertas">
+      <div class="col-md-3">
+        <a href="detalle.html?id=${book.id}" class="text-decoration-none text-dark">
+        <div class="card book-card position-relative">
+          <span class="discount-badge">-20%</span>
+          <img src="assets/img/libro1.png" alt="Don Quijote">
+          <div class="card-body">
+            <h5>Don Quijote de la Mancha</h5>
+            <p class="text-muted">Miguel de Cervantes</p>
+          </div>
+        </div>
+        </a>
+      </div>
+      <div class="col-md-3">
+        <a href="detalle.html?id=${book.id}" class="text-decoration-none text-dark">
+        <div class="card book-card position-relative">
+          <span class="discount-badge">-10%</span>
+          <img src="assets/img/libro1.png" alt="1984">
+          <div class="card-body">
+            <h5>1984</h5>
+            <p class="text-muted">George Orwell</p>
+          </div>
+        </div>
+        </a>
+      </div>
+      <div class="col-md-3">
+        <a href="detalle.html?id=${book.id}" class="text-decoration-none text-dark">
+        <div class="card book-card position-relative">
+          <span class="discount-badge">-15%</span>
+          <img src="assets/img/libro1.png" alt="El Gran Gatsby">
+          <div class="card-body">
+            <h5>El gran Gatsby</h5>
+            <p class="text-muted">F. Scott Fitzgerald</p>
+          </div>
+        </div>
+        </a>
+      </div>
+      <div class="col-md-3">
+        <a href="detalle.html?id=${book.id}" class="text-decoration-none text-dark">
+        <div class="card book-card position-relative">
+          <span class="discount-badge">-25%</span>
+          <img src="assets/img/libro1.png" alt="Crimen y Castigo">
+          <div class="card-body">
+            <h5>Crimen y castigo</h5>
+            <p class="text-muted">Fiódor Dostoyevski</p>
+          </div>
+        </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- === Más comprados === -->
+  <section class="section container">
+    <h2>📚 Los más comprados</h2>
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="card book-card">
+          <img src="assets/img/libro1.png" alt="Cien años de soledad">
+          <div class="card-body">
+            <h5>Cien años de soledad</h5>
+            <p class="text-muted">Gabriel García Márquez</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card book-card">
+          <img src="assets/img/libro1.png" alt="El Señor de los Anillos">
+          <div class="card-body">
+            <h5>El señor de los anillos</h5>
+            <p class="text-muted">J.R.R. Tolkien</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card book-card">
+          <img src="assets/img/libro1.png" alt="Fahrenheit 451">
+          <div class="card-body">
+            <h5>Fahrenheit 451</h5>
+            <p class="text-muted">Ray Bradbury</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card book-card">
+          <img src="assets/img/libro1.png" alt="La Sombra del Viento">
+          <div class="card-body">
+            <h5>La sombra del viento</h5>
+            <p class="text-muted">Carlos Ruiz Zafón</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === Opiniones === -->
+  <section class="section bg-light">
+    <div class="container">
+      <h2>💬 Opiniones de nuestros lectores</h2>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="testimonial">
+            <p>“Una web fantástica, encontré todos mis libros favoritos a muy buen precio.”</p>
+            <small>– Laura P.</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="testimonial">
+            <p>“El catálogo es enorme y el servicio rápido. Recomiendo 100%.”</p>
+            <small>– Javier G.</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="testimonial">
+            <p>“Me encanta poder descubrir clásicos y nuevas lecturas desde un mismo sitio.”</p>
+            <small>– Marta S.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === CTA === -->
+  <section class="text-center my-5">
+    <h2>¿Listo para descubrir tu próxima lectura?</h2>
+    <a href="catalogo.html" class="btn btn-lg btn-dark mt-3 px-5 py-3">Explorar catálogo</a>
+  </section>
+
+  <footer>
+    &copy; 2025 Lectio · Todos los derechos reservados
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/catalogo.js"></script>
+
+</body>
+</html>
